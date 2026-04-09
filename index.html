@@ -81,12 +81,12 @@
   }
 
   /* Popup historial */
-  .sipmon-popup .leaflet-popup-content-wrapper {
+  .octosip-popup .leaflet-popup-content-wrapper {
     background:#0a1628; border:1px solid #00ff8844; border-radius:4px;
     color:#ccc; box-shadow:0 0 12px #00ff8822;
   }
-  .sipmon-popup .leaflet-popup-tip { background:#0a1628; }
-  .sipmon-popup .leaflet-popup-content { margin:10px 14px; }
+  .octosip-popup .leaflet-popup-tip { background:#0a1628; }
+  .octosip-popup .leaflet-popup-content { margin:10px 14px; }
 
   /* Panel heatmap horario */
   #hourly-panel {
@@ -219,7 +219,7 @@
 </div>
 
 <script>
-const API = 'http://SIPMON_SERVER_IP:5000';
+const API = 'http://OCTOSIP_SERVER_IP:5000';
 const DST = [41.3874, 2.1686];
 
 // ── Slider Animation ───────────────────────────────────────────────────────
@@ -377,7 +377,7 @@ function drawHistoricFromCache() {
           `<span style="color:#ccc;font-size:12px">To: &nbsp;${(e.to_uri||'—').slice(0,50)}</span><br>`) +
       `<span style="color:#bbb">UA: ${ua}</span>` +
       `</div>`,
-      { className: 'sipmon-popup' }
+      { className: 'octosip-popup' }
     );
     historicLayers.push({ layer: dot, timer: null, ip });
 
@@ -980,7 +980,7 @@ async function focusIP(ip) {
         `<span style="color:#ccc;font-size:12px">To: &nbsp;${(ev.to_uri||'—').slice(0,50)}</span><br>`) +
     `<span style="color:#bbb">UA: ${ua}</span>` +
     `</div>`,
-    { className: 'sipmon-popup' }
+    { className: 'octosip-popup' }
   );
   setTimeout(() => { marker.openPopup(); }, 400);
   setTimeout(() => { marker.remove(); }, 10000);
