@@ -49,8 +49,8 @@ A real-time SIP attack monitoring system built on Kamailio. Captures and visuali
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/tomgilabert/OctoSIP-honeypot.git
-cd sip-honeypot
+git clone https://github.com/tomgilabert/OctoSIP.git
+cd OctoSIP
 ```
 
 ### 2. Edit config.conf
@@ -133,7 +133,7 @@ The installer will:
 ## File structure
 
 ```
-sip-honeypot/
+OctoSIP/
 ├── config.conf              # User configuration (edit before install)
 ├── install.sh               # Installer
 ├── kamailio.cfg             # Kamailio honeypot config
