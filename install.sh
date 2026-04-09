@@ -99,6 +99,21 @@ GRANT USAGE, SELECT ON SEQUENCE sip_events_id_seq TO $DB_USER;
 "
 info "PostgreSQL configured"
 
+# --- PostgreSQL performance tuning ---
+PG_CONF=$(find /etc/postgresql -name "postgresql.conf" 2>/dev/null | head -1)
+if [ -n "$PG_CONF" ]; then
+    info "Applying PostgreSQL performance tuning to $PG_CONF..."
+    sed -i "s/^#*\s*max_connections\s*=.*/max_connections = 30/"       "$PG_CONF"
+    sed -i "s/^#*\s*shared_buffers\s*=.*/shared_buffers = 512MB/"      "$PG_CONF"
+    sed -i "s/^#*\s*effective_cache_size\s*=.*/effective_cache_size = 1500MB/" "$PG_CONF"
+    sed -i "s/^#*\s*work_mem\s*=.*/work_mem = 8MB/"                    "$PG_CONF"
+    sed -i "s/^#*\s*maintenance_work_mem\s*=.*/maintenance_work_mem = 128MB/" "$PG_CONF"
+    systemctl restart postgresql
+    info "PostgreSQL restarted with new settings"
+else
+    warn "postgresql.conf not found, skipping performance tuning"
+fi
+
 # =============================================================================
 # 4. Python environment
 # =============================================================================
