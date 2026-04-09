@@ -894,13 +894,14 @@ async function updateTopUAs() {
 // ── Initial load ──────────────────────────────────────────────────────────
 let lastId = 0;
 let initialLastId = 0;
+const seenIds = new Set();
 
 async function initialLoad() {
   try {
     const rFeed = await fetch(`${API}/api/recent?limit=50`);
     const feed  = await rFeed.json();
     feed.sort((a,b) => a.id - b.id);
-    for (const e of feed) { addFeedItem(e); if (e.id > lastId) lastId = e.id; }
+    for (const e of feed) { if (!seenIds.has(e.id)) { seenIds.add(e.id); addFeedItem(e); } if (e.id > lastId) lastId = e.id; }
 
     const last = feed[feed.length - 1];
     if (last && last.src_lat && last.src_lon) {
@@ -929,6 +930,8 @@ async function pollEvents() {
     for (const e of events) {
       if (e.id <= lastId) continue;
       lastId = e.id;
+      if (seenIds.has(e.id)) continue;
+      seenIds.add(e.id);
       if (!feedPaused) addFeedItem(e);
       if (e.src_lat && e.src_lon) {
         const delay = Math.random() * 800;

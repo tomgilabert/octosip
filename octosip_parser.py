@@ -4,7 +4,7 @@ octosip_parser.py — Reads Kamailio logs from stdin (rsyslog omprog), resolves 
 Flush: every 10 messages OR every 5 seconds (whichever comes first).
 """
 
-import sys, re, logging, signal, threading, time, base64
+import sys, re, logging, signal, threading, time, base64, datetime
 import psycopg2, psycopg2.extras
 import geoip2.database
 
@@ -32,6 +32,10 @@ GEOIP_DB       = "/opt/octosip/geoip/GeoLite2-City.mmdb"
 GEOIP_ASN_DB   = "/opt/octosip/geoip/GeoLite2-ASN.mmdb"
 BATCH_SIZE     = 10
 FLUSH_INTERVAL = 5
+
+RE_SYSLOG_TS = re.compile(
+    r'^(?P<month>\w{3})\s+(?P<day>\d+)\s+(?P<time>\d{2}:\d{2}:\d{2})'
+)
 
 RE_SIPREQ = re.compile(
     r'src=(?P<src_ip>[\d\.a-fA-F:]+):(?P<src_port>\d+)\s+'
@@ -62,11 +66,11 @@ log = logging.getLogger('octosip')
 
 INSERT_SQL = """
     INSERT INTO sip_events
-        (src_ip, src_port, method, from_uri, to_uri, contact, user_agent,
+        (ts, src_ip, src_port, method, from_uri, to_uri, contact, user_agent,
          call_id, status, latitude, longitude, country, city, asn_number, asn_org,
          auth_username, auth_credentials)
     VALUES
-        (%(src_ip)s, %(src_port)s, %(method)s, %(from_uri)s, %(to_uri)s,
+        (COALESCE(%(ts)s, NOW()), %(src_ip)s, %(src_port)s, %(method)s, %(from_uri)s, %(to_uri)s,
          %(contact)s, %(user_agent)s, %(call_id)s, %(status)s,
          %(latitude)s, %(longitude)s, %(country)s, %(city)s,
          %(asn_number)s, %(asn_org)s, %(auth_username)s, %(auth_credentials)s)
@@ -134,8 +138,25 @@ def parse_auth_header(auth_hdr):
 
     return (username, credentials)
 
+def parse_syslog_ts(line):
+    """Extract timestamp from syslog line header (e.g. 'Apr  9 14:23:01')."""
+    m = RE_SYSLOG_TS.match(line)
+    if m:
+        try:
+            now = datetime.datetime.now()
+            ts_str = f"{now.year} {m.group('month')} {m.group('day')} {m.group('time')}"
+            ts = datetime.datetime.strptime(ts_str, '%Y %b %d %H:%M:%S')
+            # Handle year rollover (December log line read in January)
+            if ts > now + datetime.timedelta(days=1):
+                ts = ts.replace(year=now.year - 1)
+            return ts
+        except ValueError:
+            pass
+    return None
+
 def parse_line(line, geo_reader, asn_reader):
     row = {
+        'ts': parse_syslog_ts(line),
         'src_ip': None, 'src_port': None, 'method': None,
         'from_uri': None, 'to_uri': None, 'contact': None,
         'user_agent': None, 'call_id': None, 'status': None,

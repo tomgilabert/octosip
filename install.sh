@@ -89,8 +89,10 @@ CREATE TABLE IF NOT EXISTS sip_events (
     longitude   NUMERIC(9,6),
     country     TEXT,
     city        TEXT,
-    asn_number  BIGINT,
-    asn_org     TEXT
+    asn_number       BIGINT,
+    asn_org          TEXT,
+    auth_username    TEXT,
+    auth_credentials TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_sip_events_ts     ON sip_events (ts DESC);
 CREATE INDEX IF NOT EXISTS idx_sip_events_src_ip ON sip_events (src_ip);
