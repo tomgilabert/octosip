@@ -1,4 +1,4 @@
-#!/opt/sipmon/bin/python3
+#!/opt/octosip/bin/python3
 """
 sipmon_api.py — API REST for the animated SIP attack map.
 """
@@ -9,7 +9,7 @@ import psycopg2, psycopg2.extras, psycopg2.pool
 import logging, datetime
 
 # --- Config ---
-def load_config(path='/opt/sipmon/config.conf'):
+def load_config(path='/opt/octosip/config.conf'):
     cfg = {}
     try:
         with open(path) as f:
