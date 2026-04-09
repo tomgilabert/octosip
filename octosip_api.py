@@ -57,7 +57,7 @@ def recent():
         rows = query("""
             SELECT id, ts, src_ip::text AS src_ip, method, user_agent,
                    country, city, latitude, longitude, from_uri, to_uri,
-                   asn_number, asn_org
+                   asn_number, asn_org, auth_credentials
             FROM sip_events
             WHERE latitude IS NOT NULL AND host(src_ip) = %s
             ORDER BY ts DESC LIMIT 1
@@ -66,7 +66,7 @@ def recent():
         rows = query("""
             SELECT id, ts, src_ip::text AS src_ip, method, user_agent,
                    country, city, latitude, longitude, from_uri, to_uri,
-                   asn_number, asn_org
+                   asn_number, asn_org, auth_credentials
             FROM sip_events
             WHERE latitude IS NOT NULL AND ts > %s
             ORDER BY ts DESC LIMIT %s
@@ -75,7 +75,7 @@ def recent():
         rows = query("""
             SELECT id, ts, src_ip::text AS src_ip, method, user_agent,
                    country, city, latitude, longitude, from_uri, to_uri,
-                   asn_number, asn_org
+                   asn_number, asn_org, auth_credentials
             FROM sip_events
             WHERE latitude IS NOT NULL
             ORDER BY ts DESC LIMIT %s
@@ -98,6 +98,7 @@ def recent():
             'to_uri':     r['to_uri'],
             'asn_number': r['asn_number'],
             'asn_org':    r['asn_org'],
+            'auth_credentials': r['auth_credentials'],
         })
     return jsonify(events)
 

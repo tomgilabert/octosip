@@ -4,7 +4,7 @@ octosip_parser.py — Reads Kamailio logs from stdin (rsyslog omprog), resolves 
 Flush: every 10 messages OR every 5 seconds (whichever comes first).
 """
 
-import sys, re, logging, signal, threading, time
+import sys, re, logging, signal, threading, time, base64
 import psycopg2, psycopg2.extras
 import geoip2.database
 
@@ -49,6 +49,9 @@ RE_SIPREP = re.compile(
 RE_PIKE = re.compile(
     r'src=(?P<src_ip>[\d\.a-fA-F:]+)\s+method=(?P<method>\S+)\s+ua=(?P<user_agent>.*)'
 )
+RE_AUTH = re.compile(
+    r'src=(?P<src_ip>[\d\.a-fA-F:]+)\s+ua=(?P<user_agent>.*?)\s+from=(?P<from_uri>\S+)\s+auth_hdr=(?P<auth_hdr>.*)'
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -60,12 +63,13 @@ log = logging.getLogger('octosip')
 INSERT_SQL = """
     INSERT INTO sip_events
         (src_ip, src_port, method, from_uri, to_uri, contact, user_agent,
-         call_id, status, latitude, longitude, country, city, asn_number, asn_org)
+         call_id, status, latitude, longitude, country, city, asn_number, asn_org,
+         auth_username, auth_credentials)
     VALUES
         (%(src_ip)s, %(src_port)s, %(method)s, %(from_uri)s, %(to_uri)s,
          %(contact)s, %(user_agent)s, %(call_id)s, %(status)s,
          %(latitude)s, %(longitude)s, %(country)s, %(city)s,
-         %(asn_number)s, %(asn_org)s)
+         %(asn_number)s, %(asn_org)s, %(auth_username)s, %(auth_credentials)s)
 """
 
 def connect():
@@ -97,6 +101,39 @@ def asn_lookup(reader, ip):
     except Exception:
         return (None, None)
 
+def parse_auth_header(auth_hdr):
+    """Extract username and credentials from SIP Authorization header"""
+    if not auth_hdr:
+        return (None, None)
+
+    username = None
+    credentials = None
+
+    # Basic auth: "Basic base64(username:password)"
+    if auth_hdr.startswith('Basic '):
+        try:
+            encoded = auth_hdr[6:].strip()
+            decoded = base64.b64decode(encoded).decode('utf-8', errors='ignore')
+            if ':' in decoded:
+                username, password = decoded.split(':', 1)
+                credentials = f"{username}/{password}"
+            else:
+                credentials = decoded
+        except Exception:
+            pass
+
+    # Digest auth: extract username="value" and response hash
+    if not credentials:
+        match = re.search(r'username="?([^",]+)"?', auth_hdr)
+        if match:
+            username = match.group(1)
+        # Extract response hash (Digest auth)
+        resp_match = re.search(r'response="?([0-9a-fA-F]+)"?', auth_hdr)
+        if resp_match:
+            credentials = resp_match.group(1)
+
+    return (username, credentials)
+
 def parse_line(line, geo_reader, asn_reader):
     row = {
         'src_ip': None, 'src_port': None, 'method': None,
@@ -104,10 +141,21 @@ def parse_line(line, geo_reader, asn_reader):
         'user_agent': None, 'call_id': None, 'status': None,
         'latitude': None, 'longitude': None, 'country': None, 'city': None,
         'asn_number': None, 'asn_org': None,
+        'auth_username': None, 'auth_credentials': None,
     }
     matched = False
 
-    if 'SIPREQ' in line:
+    if 'AUTH_ATTEMPT' in line:
+        m = RE_AUTH.search(line)
+        if m:
+            d = m.groupdict()
+            row.update({'src_ip': d['src_ip'], 'user_agent': d['user_agent'],
+                        'from_uri': d['from_uri'], 'method': 'REGISTER'})
+            auth_username, auth_credentials = parse_auth_header(d['auth_hdr'])
+            row['auth_username'] = auth_username
+            row['auth_credentials'] = auth_credentials
+            matched = True
+    elif 'SIPREQ' in line:
         m = RE_SIPREQ.search(line)
         if m:
             row.update(m.groupdict())

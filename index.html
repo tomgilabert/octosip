@@ -379,7 +379,7 @@ function drawHistoricFromCache() {
       (asnStr ? `<span style="color:#88aacc;font-size:12px">${asnStr}</span><br>` : '') +
       `<span style="color:#bbb">${ts}</span><br>` +
       (e.method === 'REGISTER'
-        ? `<span style="color:#ccc;font-size:12px">Ext: ${(e.from_uri||'—').slice(0,50)}</span><br>`
+        ? `<span style="color:#ccc;font-size:12px">Ext: ${(e.from_uri||'—').split(':')[1]||'?'}</span><br>`
         : `<span style="color:#ccc;font-size:12px">From: ${(e.from_uri||'—').slice(0,50)}</span><br>` +
           `<span style="color:#ccc;font-size:12px">To: &nbsp;${(e.to_uri||'—').slice(0,50)}</span><br>`) +
       `<span style="color:#bbb">UA: ${ua}</span>` +
