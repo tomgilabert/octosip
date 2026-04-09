@@ -3,7 +3,7 @@ Description=OctoSIP Monitor API
 After=network.target postgresql.service
 
 [Service]
-ExecStart=/opt/sipmon/bin/python3 /opt/sipmon/sipmon_api.py
+ExecStart=/opt/octosip/bin/python3 /opt/octosip/octosip_api.py
 Restart=always
 RestartSec=5
 User=root
