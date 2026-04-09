@@ -198,3 +198,7 @@ Kamailio impersonates a FreePBX 16 / Asterisk 20 system. It responds to:
 ## License
 
 MIT
+
+---
+
+*Last updated: 2026-04-09 by Tom - Git configuration test*
