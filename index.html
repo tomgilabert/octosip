@@ -406,6 +406,8 @@ async function loadHistoric() {
     const since = new Date(Date.now() - histDurationMs).toISOString();
     const r = await fetch(`${API}/api/recent?limit=1000&since=${encodeURIComponent(since)}`);
     cachedHistoricEvents = await r.json();
+    // Mark all historic events as seen to avoid duplicates in feed
+    for (const e of cachedHistoricEvents) seenIds.add(e.id);
   } catch(e) { console.error('loadHistoric error:', e); return; }
 
   drawHistoricFromCache();
