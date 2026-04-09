@@ -49,7 +49,7 @@ A real-time SIP attack monitoring system built on Kamailio. Captures and visuali
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/youruser/sip-honeypot.git
+git clone https://github.com/tomgilabert/OctoSIP-honeypot.git
 cd sip-honeypot
 ```
 
