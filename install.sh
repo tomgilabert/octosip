@@ -49,7 +49,7 @@ apt-get install -y -qq \
     postgresql postgresql-client \
     python3 python3-venv python3-pip \
     rsyslog \
-    sudo curl wget tar \
+    curl wget tar \
     logrotate
 
 # =============================================================================
@@ -124,8 +124,8 @@ chmod +x /opt/octosip/octosip_api.py
 chmod +x /opt/octosip/purge_old_events.sh
 chmod +x /opt/octosip/update_geoip.sh
 
-# Replace IP in index.html
-sed "s|octosip_SERVER_IP|$SERVER_IP|g" "$SCRIPT_DIR/index.html" > /opt/octosip/www/index.html
+# Copy index.html (API URL resolved dynamically via window.location.hostname)
+cp "$SCRIPT_DIR/index.html" /opt/octosip/www/index.html
 
 # =============================================================================
 # 6. GeoIP
