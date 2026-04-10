@@ -8,7 +8,7 @@ A real-time SIP attack monitoring system built on Kamailio. Captures and visuali
 
 ## What it does
 
-- **Kamailio** listens on port 5060 (UDP/TCP) impersonating a FreePBX system to attract attackers
+- **Kamailio** listens on port 5060 (UDP/TCP) impersonating a FreePBX old system to attract attackers
 - Every SIP request is logged, geolocated and stored in PostgreSQL
 - A web dashboard shows attacks in real time on an animated world map
 - A REST API exposes statistics, top attackers, IOC exports and more
